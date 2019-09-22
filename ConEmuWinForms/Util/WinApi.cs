@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 
 using Microsoft.Win32.SafeHandles;
+using NotNullAttribute = JetBrains.Annotations.NotNullAttribute;
 
 namespace ConEmu.WinForms.Util
 {

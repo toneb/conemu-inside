@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -11,7 +11,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.Xml;
 
 using ConEmu.WinForms.Util;
@@ -20,7 +19,7 @@ using JetBrains.Annotations;
 
 using Microsoft.Build.Utilities;
 using Microsoft.VisualStudio.Threading;
-
+using NotNullAttribute = JetBrains.Annotations.NotNullAttribute;
 using Timer = System.Windows.Forms.Timer;
 
 namespace ConEmu.WinForms
@@ -105,13 +104,13 @@ namespace ConEmu.WinForms
 		/// <param name="joinableTaskFactory">The <see cref="JoinableTaskFactory"/>.</param>
 		public ConEmuSession([NotNull] ConEmuStartInfo startinfo, [NotNull] HostContext hostcontext, [NotNull] JoinableTaskFactory joinableTaskFactory)
 		{
-			if(startinfo == null)
+			if (startinfo == null)
 				throw new ArgumentNullException(nameof(startinfo));
-			if(hostcontext == null)
+			if (hostcontext == null)
 				throw new ArgumentNullException(nameof(hostcontext));
 			if (joinableTaskFactory == null)
 				throw new ArgumentNullException(nameof(joinableTaskFactory));
-			if(string.IsNullOrEmpty(startinfo.ConsoleProcessCommandLine))
+			if (string.IsNullOrEmpty(startinfo.ConsoleProcessCommandLine))
 				throw new InvalidOperationException($"Cannot start a new console process for command line “{startinfo.ConsoleProcessCommandLine}” because it's either NULL, or empty, or whitespace.");
 
 			_joinableTaskFactory = joinableTaskFactory;
@@ -125,7 +124,7 @@ namespace ConEmu.WinForms
 			Init_WireEvents(startinfo);
 
 			// Should feed ANSI log?
-			if(startinfo.IsReadingAnsiStream)
+			if (startinfo.IsReadingAnsiStream)
 				_ansilog = Init_AnsiLog(startinfo);
 
 			// Cmdline
@@ -162,7 +161,7 @@ namespace ConEmu.WinForms
 		[Pure]
 		public GuiMacroBuilder BeginGuiMacro([NotNull] string sMacroName)
 		{
-			if(sMacroName == null)
+			if (sMacroName == null)
 				throw new ArgumentNullException(nameof(sMacroName));
 
 			return new GuiMacroBuilder(this, sMacroName, Enumerable.Empty<string>());
@@ -185,12 +184,12 @@ namespace ConEmu.WinForms
 		{
 			try
 			{
-				if(!_process.HasExited)
-                    Thread.Sleep(10);
-                if (!_process.HasExited)
+				if (!_process.HasExited)
+					Thread.Sleep(10);
+				if (!_process.HasExited)
 					_process.Kill();
 			}
-			catch(Exception)
+			catch (Exception)
 			{
 				// Might be a race, so in between HasExited and Kill state could change, ignore possible errors here
 			}
@@ -203,11 +202,11 @@ namespace ConEmu.WinForms
 		/// <param name="macrotext">The full macro command, see http://conemu.github.io/en/GuiMacro.html .</param>
 		public Task<GuiMacroResult> ExecuteGuiMacroTextAsync([NotNull] string macrotext)
 		{
-			if(macrotext == null)
+			if (macrotext == null)
 				throw new ArgumentNullException(nameof(macrotext));
 
 			Process processConEmu = _process;
-			if(processConEmu == null)
+			if (processConEmu == null)
 				throw new InvalidOperationException("Cannot execute a macro because the console process is not running at the moment.");
 
 			return IsExecutingGuiMacrosInProcess ? _guiMacroExecutor.ExecuteInProcessAsync(processConEmu.Id, macrotext) : _guiMacroExecutor.ExecuteViaExtenderProcessAsync(macrotext, processConEmu.Id, _startinfo.ConEmuConsoleExtenderExecutablePath);
@@ -220,7 +219,7 @@ namespace ConEmu.WinForms
 		/// <param name="macrotext">The full macro command, see http://conemu.github.io/en/GuiMacro.html .</param>
 		public GuiMacroResult ExecuteGuiMacroTextSync([NotNull] string macrotext)
 		{
-			if(macrotext == null)
+			if (macrotext == null)
 				throw new ArgumentNullException(nameof(macrotext));
 
 			return _joinableTaskFactory.Run(() => ExecuteGuiMacroTextAsync(macrotext));
@@ -233,7 +232,7 @@ namespace ConEmu.WinForms
 		public int GetConsoleProcessExitCode()
 		{
 			int? nCode = _nConsoleProcessExitCode;
-			if(!nCode.HasValue)
+			if (!nCode.HasValue)
 				throw new InvalidOperationException("The exit code is not available yet because the console process is still running.");
 			return nCode.Value;
 		}
@@ -248,23 +247,23 @@ namespace ConEmu.WinForms
 		{
 			try
 			{
-				if((!_process.HasExited) && (!_nConsoleProcessExitCode.HasValue))
+				if ((!_process.HasExited) && (!_nConsoleProcessExitCode.HasValue))
 				{
 					GetInfoRoot rootinfo = await GetInfoRoot.QueryAsync(this);
-					if(!rootinfo.Pid.HasValue)
+					if (!rootinfo.Pid.HasValue)
 						return false; // Has already exited
 					try
 					{
 						Process.GetProcessById((int)rootinfo.Pid.Value).Kill();
 						return true;
 					}
-					catch(Exception)
+					catch (Exception)
 					{
 						// Most likely, has already exited
 					}
 				}
 			}
-			catch(Exception)
+			catch (Exception)
 			{
 				// Might be a race, so in between HasExited and Kill state could change, ignore possible errors here
 			}
@@ -279,10 +278,10 @@ namespace ConEmu.WinForms
 		{
 			try
 			{
-				if(!_process.HasExited)
+				if (!_process.HasExited)
 					return BeginGuiMacro("Break").WithParam(1 /* Ctrl+Break */).ExecuteAsync();
 			}
-			catch(Exception)
+			catch (Exception)
 			{
 				// Might be a race, so in between HasExited and Kill state could change, ignore possible errors here
 			}
@@ -297,10 +296,10 @@ namespace ConEmu.WinForms
 		{
 			try
 			{
-				if(!_process.HasExited)
+				if (!_process.HasExited)
 					return BeginGuiMacro("Break").WithParam(0 /* Ctrl+C */).ExecuteAsync();
 			}
-			catch(Exception)
+			catch (Exception)
 			{
 				// Might be a race, so in between HasExited and Kill state could change, ignore possible errors here
 			}
@@ -333,9 +332,9 @@ namespace ConEmu.WinForms
 		/// </summary>
 		public Task WriteInputTextAsync([NotNull] string text)
 		{
-			if(text == null)
+			if (text == null)
 				throw new ArgumentNullException(nameof(text));
-			if(text.Length == 0)
+			if (text.Length == 0)
 				return Task.CompletedTask;
 
 			return BeginGuiMacro("Paste").WithParam(2).WithParam(text).ExecuteAsync();
@@ -347,9 +346,9 @@ namespace ConEmu.WinForms
 		/// </summary>
 		public Task WriteOutputTextAsync([NotNull] string text)
 		{
-			if(text == null)
+			if (text == null)
 				throw new ArgumentNullException(nameof(text));
-			if(text.Length == 0)
+			if (text.Length == 0)
 				return Task.CompletedTask;
 
 			return BeginGuiMacro("Write").WithParam(text).ExecuteAsync();
@@ -366,13 +365,13 @@ namespace ConEmu.WinForms
 		{
 			add
 			{
-				if(_ansilog == null)
+				if (_ansilog == null)
 					throw new InvalidOperationException("You cannot receive the ANSI stream data because the console process has not been set up to read the ANSI stream before running; set ConEmuStartInfo::IsReadingAnsiStream to True before starting the process.");
 				_ansilog.AnsiStreamChunkReceived += value;
 			}
 			remove
 			{
-				if(_ansilog == null)
+				if (_ansilog == null)
 					throw new InvalidOperationException("You cannot receive the ANSI stream data because the console process has not been set up to read the ANSI stream before running; set ConEmuStartInfo::IsReadingAnsiStream to True before starting the process.");
 				_ansilog.AnsiStreamChunkReceived -= value;
 			}
@@ -399,12 +398,12 @@ namespace ConEmu.WinForms
 		{
 			var ansilog = new AnsiLog(_dirTempWorkingFolder);
 			_lifetime.Add(() => ansilog.Dispose());
-			if(startinfo.AnsiStreamChunkReceivedEventSink != null)
+			if (startinfo.AnsiStreamChunkReceivedEventSink != null)
 				ansilog.AnsiStreamChunkReceived += startinfo.AnsiStreamChunkReceivedEventSink;
 
 			// Do the pumping periodically (TODO: take this to async?.. but would like to keep the final evt on the home thread, unless we go to tasks)
 			// TODO: if ConEmu writes to a pipe, we might be getting events when more data comes to the pipe rather than poll it by timer
-			var timer = new Timer() {Interval = (int)TimeSpan.FromSeconds(.1).TotalMilliseconds, Enabled = true};
+			var timer = new Timer() { Interval = (int)TimeSpan.FromSeconds(.1).TotalMilliseconds, Enabled = true };
 			timer.Tick += delegate { ansilog.PumpStream(); };
 			_lifetime.Add(() => timer.Dispose());
 
@@ -424,7 +423,7 @@ namespace ConEmu.WinForms
 
 				await _joinableTaskFactory.SwitchToMainThreadAsync();
 
-				if(!consoleProcessExitCode.HasValue) // Means the wait were aborted, e.g. ConEmu has been shut down and we processed that on the main thread
+				if (!consoleProcessExitCode.HasValue) // Means the wait were aborted, e.g. ConEmu has been shut down and we processed that on the main thread
 					return;
 				TryFireConsoleProcessExited(consoleProcessExitCode.Value);
 			});
@@ -433,9 +432,9 @@ namespace ConEmu.WinForms
 		[NotNull]
 		private static unsafe CommandLineBuilder Init_MakeConEmuCommandLine([NotNull] ConEmuStartInfo startinfo, [NotNull] HostContext hostcontext, [CanBeNull] AnsiLog ansilog, [NotNull] DirectoryInfo dirLocalTempRoot)
 		{
-			if(startinfo == null)
+			if (startinfo == null)
 				throw new ArgumentNullException(nameof(startinfo));
-			if(hostcontext == null)
+			if (hostcontext == null)
 				throw new ArgumentNullException(nameof(hostcontext));
 
 			var cmdl = new CommandLineBuilder();
@@ -464,13 +463,13 @@ namespace ConEmu.WinForms
 			cmdl.AppendSwitch("-LoadCfgFile");
 			cmdl.AppendFileNameIfNotNull(Init_MakeConEmuCommandLine_EmitConfigFile(dirLocalTempRoot, startinfo, hostcontext));
 
-			if(!string.IsNullOrEmpty(startinfo.StartupDirectory))
+			if (!string.IsNullOrEmpty(startinfo.StartupDirectory))
 			{
 				cmdl.AppendSwitch("-Dir");
 				cmdl.AppendFileNameIfNotNull(startinfo.StartupDirectory);
 			}
 
-			if(dirLocalTempRoot == null)
+			if (dirLocalTempRoot == null)
 				throw new ArgumentNullException(nameof(dirLocalTempRoot));
 
 			// This one MUST be the last switch
@@ -479,19 +478,19 @@ namespace ConEmu.WinForms
 			// Console mode command
 			// NOTE: if placed AFTER the payload command line, otherwise somehow conemu hooks won't fetch the switch out of the cmdline, e.g. with some complicated git fetch/push cmdline syntax which has a lot of colons inside on itself
 			string sConsoleExitMode;
-			switch(startinfo.WhenConsoleProcessExits)
+			switch (startinfo.WhenConsoleProcessExits)
 			{
-			case WhenConsoleProcessExits.CloseConsoleEmulator:
-				sConsoleExitMode = "n";
-				break;
-			case WhenConsoleProcessExits.KeepConsoleEmulator:
-				sConsoleExitMode = "c0";
-				break;
-			case WhenConsoleProcessExits.KeepConsoleEmulatorAndShowMessage:
-				sConsoleExitMode = "c";
-				break;
-			default:
-				throw new ArgumentOutOfRangeException("ConEmuStartInfo" + "::" + "WhenConsoleProcessExits", startinfo.WhenConsoleProcessExits, "This is not a valid enum value.");
+				case WhenConsoleProcessExits.CloseConsoleEmulator:
+					sConsoleExitMode = "n";
+					break;
+				case WhenConsoleProcessExits.KeepConsoleEmulator:
+					sConsoleExitMode = "c0";
+					break;
+				case WhenConsoleProcessExits.KeepConsoleEmulatorAndShowMessage:
+					sConsoleExitMode = "c";
+					break;
+				default:
+					throw new ArgumentOutOfRangeException("ConEmuStartInfo" + "::" + "WhenConsoleProcessExits", startinfo.WhenConsoleProcessExits, "This is not a valid enum value.");
 			}
 			cmdl.AppendSwitchIfNotNull("-cur_console:", $"{(startinfo.IsElevated ? "a" : "")}{sConsoleExitMode}");
 
@@ -514,20 +513,20 @@ namespace ConEmu.WinForms
 
 		private static string Init_MakeConEmuCommandLine_EmitConfigFile([NotNull] DirectoryInfo dirForConfigFile, [NotNull] ConEmuStartInfo startinfo, [NotNull] HostContext hostcontext)
 		{
-			if(dirForConfigFile == null)
+			if (dirForConfigFile == null)
 				throw new ArgumentNullException(nameof(dirForConfigFile));
-			if(startinfo == null)
+			if (startinfo == null)
 				throw new ArgumentNullException(nameof(startinfo));
-			if(hostcontext == null)
+			if (hostcontext == null)
 				throw new ArgumentNullException(nameof(hostcontext));
 
 			// Take baseline settings from the startinfo
 			XmlDocument xmlBase = startinfo.BaseConfiguration;
-			if(xmlBase.DocumentElement == null)
+			if (xmlBase.DocumentElement == null)
 				throw new InvalidOperationException("The BaseConfiguration parameter of the ConEmuStartInfo must be a non-empty XmlDocument. This one does not have a root element.");
-			if(xmlBase.DocumentElement.Name != ConEmuConstants.XmlElementKey)
+			if (xmlBase.DocumentElement.Name != ConEmuConstants.XmlElementKey)
 				throw new InvalidOperationException($"The BaseConfiguration parameter of the ConEmuStartInfo must be an XmlDocument with the root element named “{ConEmuConstants.XmlElementKey}” in an empty namespace. The actual element name is “{xmlBase.DocumentElement.Name}”.");
-			if(!String.Equals(xmlBase.DocumentElement.GetAttribute(ConEmuConstants.XmlAttrName), ConEmuConstants.XmlValueSoftware, StringComparison.OrdinalIgnoreCase))
+			if (!String.Equals(xmlBase.DocumentElement.GetAttribute(ConEmuConstants.XmlAttrName), ConEmuConstants.XmlValueSoftware, StringComparison.OrdinalIgnoreCase))
 				throw new InvalidOperationException($"The BaseConfiguration parameter of the ConEmuStartInfo must be an XmlDocument whose root element is named “{ConEmuConstants.XmlElementKey}” and has an attribute “{ConEmuConstants.XmlAttrName}” set to “{ConEmuConstants.XmlValueSoftware}”. The actual value of this attribute is “{xmlBase.DocumentElement.GetAttribute(ConEmuConstants.XmlAttrName)}”.");
 
 			// Load default template
@@ -537,16 +536,16 @@ namespace ConEmu.WinForms
 			// Ensure the settings file has the expected keys structure
 			// As we now allow user-supplied documents, we must ensure these elements exist
 			XmlElement xmlSoftware = xmldoc.DocumentElement;
-			if(xmlSoftware == null)
+			if (xmlSoftware == null)
 				throw new InvalidOperationException("Not expecting the cloned element to be NULL.");
 			var xmlConEmu = xmlSoftware.SelectSingleNode($"{ConEmuConstants.XmlElementKey}[@{ConEmuConstants.XmlAttrName}='{ConEmuConstants.XmlValueConEmu}']") as XmlElement;
-			if(xmlConEmu == null)
+			if (xmlConEmu == null)
 			{
 				xmlSoftware.AppendChild(xmlConEmu = xmldoc.CreateElement(ConEmuConstants.XmlElementKey));
 				xmlConEmu.SetAttribute(ConEmuConstants.XmlAttrName, ConEmuConstants.XmlValueConEmu);
 			}
 			var xmlDotVanilla = xmlConEmu.SelectSingleNode($"{ConEmuConstants.XmlElementKey}[@{ConEmuConstants.XmlAttrName}='{ConEmuConstants.XmlValueDotVanilla}']") as XmlElement;
-			if(xmlDotVanilla == null)
+			if (xmlDotVanilla == null)
 			{
 				xmlConEmu.AppendChild(xmlDotVanilla = xmldoc.CreateElement(ConEmuConstants.XmlElementKey));
 				xmlDotVanilla.SetAttribute(ConEmuConstants.XmlAttrName, ConEmuConstants.XmlValueDotVanilla);
@@ -563,13 +562,13 @@ namespace ConEmu.WinForms
 			}
 
 			// Environment variables
-			if((startinfo.EnumEnv().Any()) || (startinfo.IsEchoingConsoleCommandLine) || (startinfo.GreetingText.Length > 0))
+			if ((startinfo.EnumEnv().Any()) || (startinfo.IsEchoingConsoleCommandLine) || (startinfo.GreetingText.Length > 0))
 			{
 				string keyname = "EnvironmentSet";
 				var xmlElem = ((XmlElement)(xmlSettings.SelectSingleNode($"value[@name='{keyname}']") ?? xmlSettings.AppendChild(xmldoc.CreateElement("value"))));
 				xmlElem.SetAttribute(ConEmuConstants.XmlAttrName, keyname);
 				xmlElem.SetAttribute("type", "multi");
-				foreach(string key in startinfo.EnumEnv())
+				foreach (string key in startinfo.EnumEnv())
 				{
 					XmlElement xmlLine;
 					xmlElem.AppendChild(xmlLine = xmldoc.CreateElement("line"));
@@ -577,13 +576,13 @@ namespace ConEmu.WinForms
 				}
 
 				// Echo the custom greeting text
-				if(startinfo.GreetingText.Length > 0)
+				if (startinfo.GreetingText.Length > 0)
 				{
 					// Echo each line separately
 					List<string> lines = Regex.Split(startinfo.GreetingText, @"\r\n|\n|\r").ToList();
-					if((lines.Any()) && (lines.Last().Length == 0)) // Newline handling, as declared
+					if ((lines.Any()) && (lines.Last().Length == 0)) // Newline handling, as declared
 						lines.RemoveAt(lines.Count - 1);
-					foreach(string line in lines)
+					foreach (string line in lines)
 					{
 						XmlElement xmlLine;
 						xmlElem.AppendChild(xmlLine = xmldoc.CreateElement("line"));
@@ -592,7 +591,7 @@ namespace ConEmu.WinForms
 				}
 
 				// To echo the cmdline, add an echo command to the env-init session
-				if(startinfo.IsEchoingConsoleCommandLine)
+				if (startinfo.IsEchoingConsoleCommandLine)
 				{
 					XmlElement xmlLine;
 					xmlElem.AppendChild(xmlLine = xmldoc.CreateElement("line"));
@@ -614,7 +613,7 @@ namespace ConEmu.WinForms
 		/// </summary>
 		private static string Init_MakeConEmuCommandLine_EmitConfigFile_EscapeEchoText([NotNull] string text)
 		{
-			if(text == null)
+			if (text == null)
 				throw new ArgumentNullException(nameof(text));
 
 			var sb = new StringBuilder(text.Length + 2);
@@ -622,37 +621,37 @@ namespace ConEmu.WinForms
 			// We'd always quote the arg; no harm, and works better with an empty string
 			sb.Append('"');
 
-			foreach(char ch in text)
+			foreach (char ch in text)
 			{
-				switch(ch)
+				switch (ch)
 				{
-				case '"':
-					sb.Append('"').Append('"'); // Quotes are doubled in this format
-					break;
-				case '^':
-					sb.Append("^^");
-					break;
-				case '\r':
-					sb.Append("^R");
-					break;
-				case '\n':
-					sb.Append("^N");
-					break;
-				case '\t':
-					sb.Append("^T");
-					break;
-				case '\x7':
-					sb.Append("^A");
-					break;
-				case '\b':
-					sb.Append("^B");
-					break;
-				case '[':
-					sb.Append("^E");
-					break;
-				default:
-					sb.Append(ch);
-					break;
+					case '"':
+						sb.Append('"').Append('"'); // Quotes are doubled in this format
+						break;
+					case '^':
+						sb.Append("^^");
+						break;
+					case '\r':
+						sb.Append("^R");
+						break;
+					case '\n':
+						sb.Append("^N");
+						break;
+					case '\t':
+						sb.Append("^T");
+						break;
+					case '\x7':
+						sb.Append("^A");
+						break;
+					case '\b':
+						sb.Append("^B");
+						break;
+					case '[':
+						sb.Append("^E");
+						break;
+					default:
+						sb.Append(ch);
+						break;
 				}
 			}
 
@@ -667,12 +666,12 @@ namespace ConEmu.WinForms
 		/// </summary>
 		private async Task<int?> Init_PayloadProcessMonitoring_WaitForExitCodeAsync()
 		{
-			for(;;)
+			for (; ; )
 			{
 				// Might have been terminated on the main thread
-				if(_nConsoleProcessExitCode.HasValue)
+				if (_nConsoleProcessExitCode.HasValue)
 					return null;
-				if(_process.HasExited)
+				if (_process.HasExited)
 					return null;
 
 				try
@@ -681,19 +680,19 @@ namespace ConEmu.WinForms
 					GetInfoRoot rootinfo = await GetInfoRoot.QueryAsync(this);
 
 					// Check if the process has extied, then we're done
-					if(rootinfo.ExitCode.HasValue)
+					if (rootinfo.ExitCode.HasValue)
 						return rootinfo.ExitCode.Value;
 
 					// If it has started already, must get a PID
 					// Await till the process exits and loop to reask conemu for its result
 					// If conemu exits too in this time, then it will republish payload exit code as its own exit code, and implementation will use it
-					if(rootinfo.Pid.HasValue)
+					if (rootinfo.Pid.HasValue)
 					{
 						await WinApi.Helpers.WaitForProcessExitAsync(rootinfo.Pid.Value);
 						continue; // Do not wait before retrying
 					}
 				}
-				catch(Exception)
+				catch (Exception)
 				{
 					// Smth failed, wait and retry
 				}
@@ -706,18 +705,18 @@ namespace ConEmu.WinForms
 		[NotNull]
 		private Process Init_StartConEmu([NotNull] ConEmuStartInfo startinfo, [NotNull] CommandLineBuilder cmdl)
 		{
-			if(startinfo == null)
+			if (startinfo == null)
 				throw new ArgumentNullException(nameof(startinfo));
-			if(cmdl == null)
+			if (cmdl == null)
 				throw new ArgumentNullException(nameof(cmdl));
 
 			try
 			{
-				if(string.IsNullOrEmpty(startinfo.ConEmuExecutablePath))
+				if (string.IsNullOrEmpty(startinfo.ConEmuExecutablePath))
 					throw new InvalidOperationException("Could not run the console emulator. The path to ConEmu.exe could not be detected.");
-				if(!File.Exists(startinfo.ConEmuExecutablePath))
+				if (!File.Exists(startinfo.ConEmuExecutablePath))
 					throw new InvalidOperationException($"Missing ConEmu executable at location “{startinfo.ConEmuExecutablePath}”.");
-				var processNew = new Process() {StartInfo = new ProcessStartInfo(startinfo.ConEmuExecutablePath, cmdl.ToString()) {UseShellExecute = false}};
+				var processNew = new Process() { StartInfo = new ProcessStartInfo(startinfo.ConEmuExecutablePath, cmdl.ToString()) { UseShellExecute = false } };
 
 				// Bind process termination
 				processNew.EnableRaisingEvents = true;
@@ -739,11 +738,11 @@ namespace ConEmu.WinForms
 					});
 				};
 
-				if(!processNew.Start())
+				if (!processNew.Start())
 					throw new Win32Exception("The process did not start.");
 				return processNew;
 			}
-			catch(Win32Exception ex)
+			catch (Win32Exception ex)
 			{
 				TerminateLifetime();
 				throw new InvalidOperationException("Could not run the console emulator. " + ex.Message + $" ({ex.NativeErrorCode:X8})" + Environment.NewLine + Environment.NewLine + "Command:" + Environment.NewLine + startinfo.ConEmuExecutablePath + Environment.NewLine + Environment.NewLine + "Arguments:" + Environment.NewLine + cmdl, ex);
@@ -759,10 +758,10 @@ namespace ConEmu.WinForms
 			{
 				try
 				{
-					if(_dirTempWorkingDir.Exists)
+					if (_dirTempWorkingDir.Exists)
 						_dirTempWorkingDir.Delete(true);
 				}
-				catch(Exception)
+				catch (Exception)
 				{
 					// Not interested
 				}
@@ -773,13 +772,13 @@ namespace ConEmu.WinForms
 
 		private void Init_WireEvents([NotNull] ConEmuStartInfo startinfo)
 		{
-			if(startinfo == null)
+			if (startinfo == null)
 				throw new ArgumentNullException(nameof(startinfo));
 
 			// Advise events before they got chance to fire, use event sinks from startinfo for guaranteed delivery
-			if(startinfo.ConsoleProcessExitedEventSink != null)
+			if (startinfo.ConsoleProcessExitedEventSink != null)
 				ConsoleProcessExited += startinfo.ConsoleProcessExitedEventSink;
-			if(startinfo.ConsoleEmulatorClosedEventSink != null)
+			if (startinfo.ConsoleEmulatorClosedEventSink != null)
 				ConsoleEmulatorClosed += startinfo.ConsoleEmulatorClosedEventSink;
 
 			// Re-issue events as async tasks
@@ -793,7 +792,7 @@ namespace ConEmu.WinForms
 			List<Action> items = _lifetime.ToList();
 			_lifetime.Clear();
 			items.Reverse();
-			foreach(Action item in items)
+			foreach (Action item in items)
 				item();
 		}
 
@@ -803,7 +802,7 @@ namespace ConEmu.WinForms
 		/// <param name="nConsoleProcessExitCode"></param>
 		private void TryFireConsoleProcessExited(int nConsoleProcessExitCode)
 		{
-			if(_nConsoleProcessExitCode.HasValue) // It's OK to call it from multiple places, e.g. when payload exit were detected and when ConEmu process itself exits
+			if (_nConsoleProcessExitCode.HasValue) // It's OK to call it from multiple places, e.g. when payload exit were detected and when ConEmu process itself exits
 				return;
 
 			// Make sure the whole ANSI log contents is pumped out before we notify user
@@ -824,7 +823,7 @@ namespace ConEmu.WinForms
 		{
 			public HostContext([NotNull] void* hWndParent, bool isStatusbarVisibleInitial)
 			{
-				if(hWndParent == null)
+				if (hWndParent == null)
 					throw new ArgumentNullException(nameof(hWndParent));
 				HWndParent = hWndParent;
 				IsStatusbarVisibleInitial = isStatusbarVisibleInitial;
