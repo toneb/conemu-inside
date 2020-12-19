@@ -470,12 +470,6 @@ namespace ConEmu.WinForms
 				cmdl.AppendFileNameIfNotNull(startinfo.StartupDirectory);
 			}
 
-			// ANSI Log file
-			if(ansilog != null)
-			{
-				cmdl.AppendSwitch("-AnsiLog");
-				cmdl.AppendFileNameIfNotNull(ansilog.Directory.FullName);
-			}
 			if(dirLocalTempRoot == null)
 				throw new ArgumentNullException(nameof(dirLocalTempRoot));
 
@@ -500,6 +494,12 @@ namespace ConEmu.WinForms
 				throw new ArgumentOutOfRangeException("ConEmuStartInfo" + "::" + "WhenConsoleProcessExits", startinfo.WhenConsoleProcessExits, "This is not a valid enum value.");
 			}
 			cmdl.AppendSwitchIfNotNull("-cur_console:", $"{(startinfo.IsElevated ? "a" : "")}{sConsoleExitMode}");
+
+			// ANSI Log file
+			if (ansilog != null)
+			{
+				cmdl.AppendSwitchIfNotNull("-cur_console:L:", ansilog.Directory.FullName);
+			}
 
 			if (!string.IsNullOrEmpty(startinfo.ConsoleProcessExtraArgs))
 			{
