@@ -110,14 +110,13 @@ namespace ConEmu.WinForms
 		/// <returns>Returns the newly-started session, as in <see cref="RunningSession" />.</returns>
 		[NotNull]
 		public ConEmuSession Start([NotNull] ConEmuStartInfo startinfo, [NotNull] JoinableTaskFactory joinableTaskFactory,
-			[NotNull] string conEmuStyle, string conEmuFontSize)
+			[NotNull] string conEmuStyle, string conEmuFontName, string conEmuFontSize)
 		{
 			if (startinfo == null)
 				throw new ArgumentNullException(nameof(startinfo));
 
-
 			SetConsoleFontSize();
-
+			SetConsoleFontName();
 			SetConsoleStyle();
 
 			// Close prev session if there is one
@@ -151,6 +150,24 @@ namespace ConEmu.WinForms
 		  }).Forget();
 
 			return session;
+
+			void SetConsoleFontName()
+			{
+				var startInfoBaseConfiguration = startinfo.BaseConfiguration;
+				if (!string.IsNullOrWhiteSpace(conEmuFontName))
+				{
+					var nodeFontName =
+						startInfoBaseConfiguration.SelectSingleNode("/key/key/key/value[@name='FontName']");
+
+					if (nodeFontName?.Attributes != null)
+					{
+						nodeFontName.Attributes["data"].Value = conEmuFontName;
+					}
+				}
+
+				startinfo.BaseConfiguration = startInfoBaseConfiguration;
+			}
+
 
 			void SetConsoleFontSize()
 			{
