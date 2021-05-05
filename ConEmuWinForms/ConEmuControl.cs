@@ -4,11 +4,10 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
 using ConEmu.WinForms.Util;
-
 using JetBrains.Annotations;
 using Microsoft.VisualStudio.Threading;
+using NotNullAttribute = JetBrains.Annotations.NotNullAttribute;
 
 namespace ConEmu.WinForms
 {
@@ -73,7 +72,7 @@ namespace ConEmu.WinForms
 				// Special case for just-exited payload: user might get the payload-exited event before us and call this property to get its exit code, while we have not recorded the fresh exit code yet
 				// So call into the current session and fetch the actual value, if available (no need to write to field, will update in our event handler soon)
 				ConEmuSession running = _running;
-				if((running != null) && (running.IsConsoleProcessExited))
+				if ((running != null) && (running.IsConsoleProcessExited))
 					return running.GetConsoleProcessExitCode();
 				return _nLastExitCode; // No console emulator open or current process still running in the console emulator, use prev exit code if there were
 			}
@@ -113,7 +112,7 @@ namespace ConEmu.WinForms
 		public ConEmuSession Start([NotNull] ConEmuStartInfo startinfo, [NotNull] JoinableTaskFactory joinableTaskFactory,
 			[NotNull] string conEmuStyle, string conEmuFontSize)
 		{
-			if(startinfo == null)
+			if (startinfo == null)
 				throw new ArgumentNullException(nameof(startinfo));
 
 
@@ -123,11 +122,11 @@ namespace ConEmu.WinForms
 
 			// Close prev session if there is one
 			_running?.CloseConsoleEmulator();
-			if(_running != null)
+			if (_running != null)
 				throw new InvalidOperationException("Cannot start a new console process because another console emulator session has failed to close in due time.");
 
 			_autostartinfo = null; // As we're starting, no more chance for an autostart
-			if(!IsHandleCreated)
+			if (!IsHandleCreated)
 				CreateHandle();
 
 			// Spawn session
@@ -136,20 +135,20 @@ namespace ConEmu.WinForms
 			StateChanged?.Invoke(this, EventArgs.Empty);
 
 			// Wait for its exit
-			session.WaitForConsoleEmulatorCloseAsync().ContinueWith(scheduler : TaskScheduler.FromCurrentSynchronizationContext(), continuationAction : task =>
-			{
-				try
-				{
-					_nLastExitCode = _running.GetConsoleProcessExitCode();
-				}
-				catch(Exception)
-				{
+			session.WaitForConsoleEmulatorCloseAsync().ContinueWith(scheduler: TaskScheduler.FromCurrentSynchronizationContext(), continuationAction: task =>
+		  {
+			  try
+			  {
+				  _nLastExitCode = _running.GetConsoleProcessExitCode();
+			  }
+			  catch (Exception)
+			  {
 					// NOP
 				}
-				_running = null;
-				Invalidate();
-				StateChanged?.Invoke(this, EventArgs.Empty);
-			}).Forget();
+			  _running = null;
+			  Invalidate();
+			  StateChanged?.Invoke(this, EventArgs.Empty);
+		  }).Forget();
 
 			return session;
 
@@ -185,7 +184,7 @@ namespace ConEmu.WinForms
 		[SuppressMessage("ReSharper", "UnusedMember.Local")]
 		private void AssertNotRunning()
 		{
-			if(_running != null)
+			if (_running != null)
 				throw new InvalidOperationException("This change is not possible when a console process is already running.");
 		}
 
@@ -194,13 +193,13 @@ namespace ConEmu.WinForms
 			base.Dispose(disposing);
 
 			// Cleanup console process
-			if(_running != null)
+			if (_running != null)
 			{
 				try
 				{
 					_running.CloseConsoleEmulator();
 				}
-				catch(Exception)
+				catch (Exception)
 				{
 					// Nothing to do with it
 				}
@@ -215,7 +214,7 @@ namespace ConEmu.WinForms
 		[CanBeNull]
 		private void* TryGetConEmuHwnd()
 		{
-			if(!IsHandleCreated) // Without this check, getting the Handle would cause the control to be loaded, and AutoStartInfo be executed right in the .ctor, because the first call into this func goes in the .ctor
+			if (!IsHandleCreated) // Without this check, getting the Handle would cause the control to be loaded, and AutoStartInfo be executed right in the .ctor, because the first call into this func goes in the .ctor
 				return null;
 			void* hwndConEmu = null;
 			WinApi.EnumWindowsProc callback = (hwnd, param) =>

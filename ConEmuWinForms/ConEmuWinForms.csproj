@@ -1,28 +1,27 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <AssemblyName>ConEmu.WinForms</AssemblyName>
-    <RootNamespace>ConEmu.WinForms</RootNamespace>
-    <TargetFramework>net461</TargetFramework>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <NoWarn>$(NoWarn),1573,1591,1696,1712</NoWarn>
 
-    <!-- TODO once all project migrated to SDK-style, remove this and move properties to Directory.Build.props -->
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net5.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <OutputPath>bin\</OutputPath>
+    <DocumentationFile>bin\ConEmuWinForms.xml</DocumentationFile>
+    <NoWarn>$(NoWarn),1591,1696</NoWarn>
   </PropertyGroup>
-  
-  <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="ConEmu.Core" Version="21.03.14" PrivateAssets="all" />
     <PackageReference Include="JetBrains.Annotations" Version="$(JetBrainsAnnotationsVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="ConEmu.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="ConEmu.xml" />
   </ItemGroup>
 
   <ItemGroup>

@@ -6,7 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Xml;
-
+using ConEmuWinForms;
 using JetBrains.Annotations;
 
 namespace ConEmu.WinForms
@@ -498,7 +498,7 @@ namespace ConEmu.WinForms
 		private static string InitConEmuLocation()
 		{
 			// Look alongside this DLL and in a subfolder
-			string asmpath = new Uri(Assembly.GetExecutingAssembly().EscapedCodeBase, UriKind.Absolute).LocalPath;
+			string asmpath = new Uri(Assembly.GetExecutingAssembly().Location, UriKind.Absolute).LocalPath;
 			if(string.IsNullOrEmpty(asmpath))
 				return "";
 			string dir = Path.GetDirectoryName(asmpath);
