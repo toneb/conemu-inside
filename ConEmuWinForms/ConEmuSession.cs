@@ -416,7 +416,7 @@ namespace ConEmu.WinForms
 		private void Init_ConsoleProcessMonitoring()
 		{
 			// When the payload process exits, use its exit code
-			_joinableTaskFactory.RunAsync(async () =>
+			_joinableTaskFactory.Run(async () =>
 			{
 				// Detect when this happens
 				int? consoleProcessExitCode = await Init_PayloadProcessMonitoring_WaitForExitCodeAsync();
@@ -723,7 +723,7 @@ namespace ConEmu.WinForms
 				processNew.Exited += delegate
 				{
 					// Ensure STA
-					_joinableTaskFactory.RunAsync(async () =>
+					_joinableTaskFactory.Run(async () =>
 					{
 						await _joinableTaskFactory.SwitchToMainThreadAsync();
 
