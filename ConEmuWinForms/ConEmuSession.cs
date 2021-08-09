@@ -416,17 +416,17 @@ namespace ConEmu.WinForms
 		private void Init_ConsoleProcessMonitoring()
 		{
 			// When the payload process exits, use its exit code
-			_joinableTaskFactory.Run(async () =>
-			{
+			_ = _joinableTaskFactory.RunAsync(async () =>
+			  {
 				// Detect when this happens
 				int? consoleProcessExitCode = await Init_PayloadProcessMonitoring_WaitForExitCodeAsync();
 
-				await _joinableTaskFactory.SwitchToMainThreadAsync();
+				  await _joinableTaskFactory.SwitchToMainThreadAsync();
 
-				if (!consoleProcessExitCode.HasValue) // Means the wait were aborted, e.g. ConEmu has been shut down and we processed that on the main thread
+				  if (!consoleProcessExitCode.HasValue) // Means the wait were aborted, e.g. ConEmu has been shut down and we processed that on the main thread
 					return;
-				TryFireConsoleProcessExited(consoleProcessExitCode.Value);
-			});
+				  TryFireConsoleProcessExited(consoleProcessExitCode.Value);
+			  });
 		}
 
 		[NotNull]
@@ -723,9 +723,9 @@ namespace ConEmu.WinForms
 				processNew.Exited += delegate
 				{
 					// Ensure STA
-					_joinableTaskFactory.Run(async () =>
-					{
-						await _joinableTaskFactory.SwitchToMainThreadAsync();
+					_ = _joinableTaskFactory.RunAsync(async () =>
+					  {
+						  await _joinableTaskFactory.SwitchToMainThreadAsync();
 
 						// Tear down all objects
 						TerminateLifetime();
@@ -735,7 +735,7 @@ namespace ConEmu.WinForms
 
 						// Fire client total exited event
 						ConsoleEmulatorClosed?.Invoke(this, EventArgs.Empty);
-					});
+					  });
 				};
 
 				if (!processNew.Start())
